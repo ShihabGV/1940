@@ -223,5 +223,36 @@
     }
   }, 500);
 
+  // Listen for clipboard copy requests from background script
+  console.log('[AI Safe Guard] Setting up message listener for clipboard operations');
+  
   console.log('[AI Safe Guard] Initialization complete');
 })();
+
+// Message listener for background script operations (outside IIFE to ensure it runs)
+console.log('[Content] Setting up message listener for clipboard and alert operations');
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('[Content] Received message:', request.action);
+  
+  if (request.action === 'copyToClipboard') {
+    console.log('[Content] Processing clipboard request for:', request.text.substring(0, 50));
+    
+    navigator.clipboard.writeText(request.text).then(() => {
+      console.log('[Content] ✅ Text copied to clipboard successfully');
+      sendResponse({ success: true });
+    }).catch(err => {
+      console.error('[Content] ❌ Failed to copy to clipboard:', err);
+      sendResponse({ success: false, error: err.message });
+    });
+    return true; // Keep channel open for async response
+  }
+  
+  if (request.action === 'showAlert') {
+    console.log('[Content] Showing alert:', request.title);
+    alert(request.message);
+    sendResponse({ success: true });
+  }
+});
+
+console.log('[Content] Message listener setup complete');

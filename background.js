@@ -134,90 +134,146 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 /**
- * CyberChef Helper Functions - SIMPLIFIED FOR VISIBILITY
+ * Show popup alert in the active tab
+ */
+function showPopup(title, message) {
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs || tabs.length === 0) {
+        console.warn('[BG] No active tab found for popup');
+        return;
+      }
+
+      const tab = tabs[0];
+      console.log('[BG] Sending popup message to tab:', tab.id);
+
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'showAlert',
+        title: title,
+        message: message
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.warn('[BG] Could not send alert via content script:', chrome.runtime.lastError.message);
+          // Fallback to notification
+          sendNotification(title, message.substring(0, 100));
+        } else {
+          console.log('[BG] Alert shown successfully');
+        }
+      });
+    });
+  } catch (error) {
+    console.error('[BG] Error showing popup:', error);
+    // Fallback to notification
+    sendNotification(title, message.substring(0, 100));
+  }
+}
+
+/**
+ * Helper to copy to clipboard via content script
+ */
+function copyToClipboardViaContentScript(text, title, message) {
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs || tabs.length === 0) {
+        console.log('[BG] No active tab found');
+        showPopup(title, message);
+        return;
+      }
+      
+      const tab = tabs[0];
+      console.log('[BG] Sending clipboard message to tab:', tab.id);
+      
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'copyToClipboard',
+        text: text
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.warn('[BG] Content script error:', chrome.runtime.lastError.message);
+        } else {
+          console.log('[BG] Clipboard response:', response);
+        }
+        // Show popup regardless of clipboard success
+        showPopup(title, message);
+      });
+    });
+  } catch (error) {
+    console.error('[BG] Error in copyToClipboardViaContentScript:', error);
+    showPopup(title, message);
+  }
+}
+
+/**
+ * CyberChef Helper Functions - WITH POPUP ALERTS
  */
 function handleBase64Encode(text) {
   try {
     if (!text || text.length === 0) {
-      alert('❌ No text selected. Select text first, then right-click!');
+      showPopup('❌ Error', '❌ No text selected. Select text first, then right-click!');
       return;
     }
     
     const encoded = btoa(text);
     console.log('[BG] BASE64 ENCODED:', encoded);
     
-    // Try to copy to clipboard
-    navigator.clipboard.writeText(encoded).then(() => {
-      alert(`✅ Base64 Encoded!\n\n${encoded}\n\n(Copied to clipboard)`);
-    }).catch(() => {
-      alert(`✅ Base64 Encoded!\n\n${encoded}\n\n(Click to copy: Ctrl+C)`);
-    });
+    // Copy to clipboard via content script
+    copyToClipboardViaContentScript(encoded, '✅ Base64 Encoded', `✅ Base64 Encoded!\n\n${encoded}\n\n(Copied to clipboard)`);
   } catch (error) {
     console.error('[BG] Base64 encode error:', error);
-    alert('❌ Error: ' + error.message);
+    showPopup('❌ Error', '❌ Error: ' + error.message);
   }
 }
 
 function handleBase64Decode(text) {
   try {
     if (!text || text.length === 0) {
-      alert('❌ No text selected. Select text first, then right-click!');
+      showPopup('❌ Error', '❌ No text selected. Select text first, then right-click!');
       return;
     }
     
     const decoded = atob(text);
     console.log('[BG] BASE64 DECODED:', decoded);
     
-    navigator.clipboard.writeText(decoded).then(() => {
-      alert(`✅ Base64 Decoded!\n\n${decoded}\n\n(Copied to clipboard)`);
-    }).catch(() => {
-      alert(`✅ Base64 Decoded!\n\n${decoded}\n\n(Click to copy: Ctrl+C)`);
-    });
+    // Copy to clipboard via content script
+    copyToClipboardViaContentScript(decoded, '📖 Base64 Decoded', `📖 Base64 Decoded!\n\n${decoded}\n\n(Copied to clipboard)`);
   } catch (error) {
     console.error('[BG] Base64 decode error:', error);
-    alert('❌ Error: Invalid Base64 string');
+    showPopup('❌ Error', '❌ Error: Invalid Base64 string');
   }
 }
 
 function handleURLEncode(text) {
   try {
     if (!text || text.length === 0) {
-      alert('❌ No text selected. Select text first, then right-click!');
+      showPopup('❌ Error', '❌ No text selected. Select text first, then right-click!');
       return;
     }
     
     const encoded = encodeURIComponent(text);
     console.log('[BG] URL ENCODED:', encoded);
     
-    navigator.clipboard.writeText(encoded).then(() => {
-      alert(`✅ URL Encoded!\n\n${encoded}\n\n(Copied to clipboard)`);
-    }).catch(() => {
-      alert(`✅ URL Encoded!\n\n${encoded}\n\n(Click to copy: Ctrl+C)`);
-    });
+    // Copy to clipboard via content script
+    copyToClipboardViaContentScript(encoded, '🔗 URL Encoded', `🔗 URL Encoded!\n\n${encoded}\n\n(Copied to clipboard)`);
   } catch (error) {
     console.error('[BG] URL encode error:', error);
-    alert('❌ Error: ' + error.message);
+    showPopup('❌ Error', '❌ Error: ' + error.message);
   }
 }
 
 function handleURLDecode(text) {
   try {
     if (!text || text.length === 0) {
-      alert('❌ No text selected. Select text first, then right-click!');
+      showPopup('❌ Error', '❌ No text selected. Select text first, then right-click!');
       return;
     }
     
     const decoded = decodeURIComponent(text);
     console.log('[BG] URL DECODED:', decoded);
     
-    navigator.clipboard.writeText(decoded).then(() => {
-      alert(`✅ URL Decoded!\n\n${decoded}\n\n(Copied to clipboard)`);
-    }).catch(() => {
-      alert(`✅ URL Decoded!\n\n${decoded}\n\n(Click to copy: Ctrl+C)`);
-    });
+    // Copy to clipboard via content script
+    copyToClipboardViaContentScript(decoded, '🔓 URL Decoded', `🔓 URL Decoded!\n\n${decoded}\n\n(Copied to clipboard)`);
   } catch (error) {
     console.error('[BG] URL decode error:', error);
-    alert('❌ Error: Could not decode URL');
+    showPopup('❌ Error', '❌ Error: Could not decode URL');
   }
 }
 
@@ -228,7 +284,7 @@ async function checkUrlOnVirusTotal(url) {
   try {
     if (!url || !url.startsWith('http')) {
       url = url || 'unknown';
-      alert('❌ Invalid URL: ' + url);
+      showPopup('❌ Error', '❌ Invalid URL: ' + url);
       return;
     }
 
@@ -237,12 +293,12 @@ async function checkUrlOnVirusTotal(url) {
     const settings = await getSettings();
     
     if (!settings.vtEnable || !settings.vtKey) {
-      alert('⚠️ VirusTotal not configured!\n\nSet your API key in the popup settings first.');
+      showPopup('⚠️ Config Missing', '⚠️ VirusTotal not configured!\n\nSet your API key in the popup settings first.');
       console.log('[BG] VT disabled or no API key');
       return;
     }
 
-    alert('🔍 Scanning on VirusTotal...\n\n' + truncateUrl(url, 60));
+    showPopup('🔍 Scanning', '🔍 Scanning on VirusTotal...\n\n' + truncateUrl(url, 50));
     console.log('[BG] Scanning URL:', url);
     
     // Use the existing scanUrl function
@@ -255,16 +311,16 @@ async function checkUrlOnVirusTotal(url) {
       const message = `Detections: ${malicious}\nClean: ${clean}`;
       
       if (malicious > 0) {
-        alert(`🚨 THREATS DETECTED!\n\n${message}`);
+        showPopup('🚨 THREATS DETECTED!', `🚨 THREATS DETECTED!\n\n${message}`);
       } else {
-        alert(`✅ No threats detected!\n\n${message}`);
+        showPopup('✅ No Threats Detected', `✅ No threats detected!\n\n${message}`);
       }
     } else {
-      alert('⚠️ Could not get VirusTotal results. Try again.');
+      showPopup('⚠️ No Results', '⚠️ Could not get VirusTotal results. Try again.');
     }
   } catch (error) {
     console.error('[BG] VirusTotal check error:', error);
-    alert('❌ Error: Could not scan\n\n' + error.message);
+    showPopup('❌ Error', '❌ Error: Could not scan\n\n' + error.message);
   }
 }
 
