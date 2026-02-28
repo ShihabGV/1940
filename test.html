@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Safe Guard - Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border-left: 4px solid #0066cc;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    .test-text {
+      background: #fff3cd;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      cursor: text;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ AI Safe Guard - Test Page</h1>
+  <p><strong>Use this page to test encoding/decoding features.</strong></p>
+
+  <div class="section">
+    <h2>1️⃣ Test Base64 Encoding</h2>
+    <p>Select the text below, right-click, choose "🔍 Security Tools" → "📝 Encode Base64"</p>
+    <div class="test-text">Hello World!</div>
+  </div>
+
+  <div class="section">
+    <h2>2️⃣ Test Base64 Decoding</h2>
+    <p>Select the text below, right-click, choose "🔍 Security Tools" → "📖 Decode Base64"</p>
+    <div class="test-text">SGVsbG8gV29ybGQh</div>
+  </div>
+
+  <div class="section">
+    <h2>3️⃣ Test URL Encoding</h2>
+    <p>Select the text below, right-click, choose "🔍 Security Tools" → "🔗 Encode URL"</p>
+    <div class="test-text">hello world?name=test&value=123</div>
+  </div>
+
+  <div class="section">
+    <h2>4️⃣ Test URL Decoding</h2>
+    <p>Select the text below, right-click, choose "🔍 Security Tools" → "🔓 Decode URL"</p>
+    <div class="test-text">hello%20world%3Fname%3Dtest%26value%3D123</div>
+  </div>
+
+  <div class="section">
+    <h2>5️⃣ Test VirusTotal Check</h2>
+    <p>Right-click anywhere on this page and choose "🔍 Security Tools" → "🦠 Check on VirusTotal"</p>
+    <p><strong>Note:</strong> You need to set your VirusTotal API key in the extension popup first!</p>
+  </div>
+
+  <div class="section" style="background: #fff">
+    <h2>📋 Debug Info</h2>
+    <button onclick="showDebugInfo()">Show Debug Info</button>
+    <div id="debugOutput" style="margin-top: 10px; background: #f4f4f4; padding: 10px; border-radius: 4px; display: none; white-space: pre-wrap; overflow-x: auto;"></div>
+  </div>
+
+  <script>
+    function showDebugInfo() {
+      const output = document.getElementById('debugOutput');
+      const info = `
+🔍 AI Safe Guard - Debug Information:
+
+Extension Status:
+- Window has chrome API: ${typeof chrome !== 'undefined' ? '✅' : '❌'}
+- chrome.runtime available: ${typeof chrome?.runtime !== 'undefined' ? '✅' : '❌'}
+
+Page Info:
+- URL: ${window.location.href}
+- Host: ${window.location.host}
+- Title: ${document.title}
+
+Instructions:
+1. Select any highlighted text above
+2. Right-click
+3. Look for "🔍 Security Tools" in the context menu
+4. If you see it, click a sub-option
+5. You should see a popup with the result
+
+If context menus don't appear:
+- Check chrome://extensions and reload AI Safe Guard
+- Clear site data and reload this page
+- Check the extension's browser console (F12 → "Extensions" tab)
+
+Open Browser Console (F12) to see detailed logs from the extension.
+      `;
+      output.textContent = info;
+      output.style.display = 'block';
+    }
+
+    // Auto-show on load
+    window.addEventListener('load', () => {
+      console.log('[TEST PAGE] Loaded - context menus should be available');
+    });
+  </script>
+</body>
+</html>

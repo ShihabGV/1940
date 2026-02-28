@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Safe Guard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, sans-serif;
+      width: 380px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f1f5f9;
+      overflow: hidden;
+    }
+
+    .container {
+      padding: 16px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .status-toggle {
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+      border-radius: 12px;
+      border: none;
+      background: #10b981;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 2px;
+    }
+
+    .status-toggle.disabled {
+      background: #6b7280;
+    }
+
+    .status-toggle::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .status-toggle.disabled::after {
+      left: 22px;
+    }
+
+    .section {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 3px;
+      height: 12px;
+      background: #3b82f6;
+      border-radius: 1px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-badge.disabled {
+      background: rgba(107, 114, 128, 0.2);
+      color: #9ca3af;
+      border-color: rgba(107, 114, 128, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+
+    label:hover {
+      color: #f1f5f9;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #3b82f6;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.5);
+      color: #f1f5f9;
+      font-size: 13px;
+      transition: all 0.2s;
+      margin-top: 4px;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: rgba(15, 23, 42, 0.8);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    input[type="text"]::placeholder,
+    input[type="password"]::placeholder {
+      color: #64748b;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(59, 130, 246, 0.25);
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    .info-box {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #93c5fd;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    .quick-links {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .quick-link {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 6px;
+      color: #93c5fd;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: block;
+    }
+
+    .quick-link:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .feedback-message {
+      display: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 8px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .feedback-message.success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: block;
+    }
+
+    .feedback-message.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(148, 163, 184, 0.1);
+      margin: 12px 0;
+    }
+
+    .stats-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #3b82f6;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <span>🛡️</span>
+        <span>AI Safe Guard</span>
+      </div>
+      <button class="status-toggle" id="protectionToggle" title="Toggle protection"></button>
+    </header>
+
+    <!-- Protection Status -->
+    <div class="section">
+      <div class="section-title">Status</div>
+      <div id="statusBadge" class="status-badge">Protection Enabled ✅</div>
+      <div id="statsArea" class="stats-mini">
+        <div class="stat-card">
+          <div class="stat-value" id="eventCount">0</div>
+          <div class="stat-label">Events</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="riskCount">0</div>
+          <div class="stat-label">Threats</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VirusTotal Settings -->
+    <div class="section">
+      <div class="section-title">VirusTotal Integration</div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="vtEnable" />
+          Enable VirusTotal Scanning
+        </label>
+      </div>
+
+      <div class="form-group">
+        <input
+          type="password"
+          id="vtKey"
+          placeholder="Enter VirusTotal API Key"
+          autocomplete="off"
+        />
+        <div class="info-box">
+          Get your free API key from <strong>virustotal.com</strong>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-primary" id="saveBtn">Save Settings</button>
+      </div>
+
+      <div id="feedback" class="feedback-message"></div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="section">
+      <div class="section-title">Quick Access</div>
+      <div class="quick-links">
+        <a class="quick-link" href="dashboard.html" target="_blank">📊 Dashboard</a>
+        <a class="quick-link" href="https://virustotal.com" target="_blank">🔍 VT API</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
