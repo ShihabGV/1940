@@ -142,11 +142,25 @@ function aiPredictRisk(urlStr) {
     // Scale to percentage [0, 100]
     const score = Math.round(probability * 100);
 
+    // Generate human-readable reasons
+    const reasons = [];
+    if (features.has_ip) reasons.push('Direct IP address usage');
+    if (features.http_only) reasons.push('Non-HTTPS connection');
+    if (features.long_host) reasons.push('Unusually long hostname');
+    if (features.many_dashes) reasons.push('Typosquatting indicator (many dashes)');
+    if (features.many_digits) reasons.push('Suspicious domain (many digits)');
+    if (features.risky_tld) reasons.push('Known risky TLD');
+    if (features.phishing_words) reasons.push('Phishing-related keywords found');
+    if (features.risky_ext) reasons.push('Risky file extension in URL');
+    if (features.suspicious_path) reasons.push('Obfuscated URL path');
+    if (features.looks_like_subdomain) reasons.push('Subdomain spoofing attempt');
+
     // Return predictions
     return {
       prob: Number(probability.toFixed(3)),
       score: Math.max(0, Math.min(100, score)), // Clamp to [0, 100]
-      features: features
+      features: features,
+      reasons: reasons
     };
   } catch (error) {
     // Fail-safe: return neutral risk
@@ -186,11 +200,18 @@ function classifyRisk(score) {
 
 // ==================== EXPORT / LOGGING ====================
 
-// Expose to window for content script access
-window.aiPredictRisk = aiPredictRisk;
-window.batchPredictRisk = batchPredictRisk;
-window.classifyRisk = classifyRisk;
-window.extractUrlFeatures = extractUrlFeatures;
+// Expose to window/global for content script and background access
+if (typeof window !== 'undefined') {
+  window.aiPredictRisk = aiPredictRisk;
+  window.batchPredictRisk = batchPredictRisk;
+  window.classifyRisk = classifyRisk;
+  window.extractUrlFeatures = extractUrlFeatures;
+} else if (typeof self !== 'undefined') {
+  self.aiPredictRisk = aiPredictRisk;
+  self.batchPredictRisk = batchPredictRisk;
+  self.classifyRisk = classifyRisk;
+  self.extractUrlFeatures = extractUrlFeatures;
+}
 
 // Log model initialization
 console.log('[AI Safe Guard] Threat detection model loaded');

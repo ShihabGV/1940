@@ -7,6 +7,7 @@ const LOGS_PER_PAGE = 25;
 let allLogs = [];
 let currentPage = 1;
 let autoRefreshInterval = null;
+let threatChart = null;
 
 // ==================== INITIALIZATION ====================
 
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load initial data
     await loadLogs();
     updateStatistics();
+    initChart();
 
     // Event listeners
     const clearBtn = document.getElementById('clearBtn');
@@ -65,6 +67,7 @@ async function loadLogs() {
     console.log('[Dashboard] About to render logs table');
     renderLogsTable();
     updateStatistics();
+    updateChart();
     console.log('[Dashboard] Logs loaded successfully');
   } catch (error) {
     console.error('[Dashboard] Error loading logs:', error);
@@ -173,6 +176,13 @@ function renderLogsTable() {
           ${log.sessionRisk ? `<div class="detail-item">
             <span>Session Risk:</span>
             <span>${log.sessionRisk.score || 0}/100</span>
+          </div>` : ''}
+          ${log.reasons && log.reasons.length > 0 ? `
+          <div class="detail-item" style="display: block; margin-top: 10px; border-top: 1px solid rgba(148, 163, 184, 0.1); padding-top: 10px;">
+            <div style="font-weight: 600; color: #fca5a5; margin-bottom: 5px;">Risk Reasons:</div>
+            <ul style="margin-left: 20px; color: #cbd5e1;">
+              ${log.reasons.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+            </ul>
           </div>` : ''}
           <div class="detail-item">
             <span>Source:</span>
@@ -324,4 +334,73 @@ function showError(message) {
       ❌ ${escapeHtml(message)}
     </div>
   `;
+}
+/**
+ * Initialize the threat activity chart
+ */
+function initChart() {
+  const ctx = document.getElementById('threatChart');
+  if (!ctx) return;
+
+  threatChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Security Threats',
+        data: [],
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(148, 163, 184, 0.1)' },
+          ticks: { color: '#94a3b8', stepSize: 1 }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#94a3b8' }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Update chart data based on logs
+ */
+function updateChart() {
+  if (!threatChart || allLogs.length === 0) return;
+
+  // Group logs by time (last 12 intervals)
+  const threatsOnly = allLogs.filter(l => l.finalRisk >= 60);
+  const now = Date.now();
+  const hourMs = 3600000;
+  const labels = [];
+  const data = [];
+
+  for (let i = 11; i >= 0; i--) {
+    const timeStart = now - (i + 1) * hourMs;
+    const timeEnd = now - i * hourMs;
+    const count = threatsOnly.filter(l => l.ts >= timeStart && l.ts < timeEnd).length;
+    
+    const timeLabel = new Date(timeEnd).getHours() + ':00';
+    labels.push(timeLabel);
+    data.push(count);
+  }
+
+  threatChart.data.labels = labels;
+  threatChart.data.datasets[0].data = data;
+  threatChart.update();
 }

@@ -1,7 +1,10 @@
 {
   "manifest_version": 3,
   "name": "AI Safe Guard",
-  "version": "2.2.0",
+  "version": "2.2.1",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "description": "Professional security extension: Real-time threat detection, phishing prevention, keylogger detection, VirusTotal integration, and comprehensive security dashboard.",
   "permissions": [
     "tabs",
