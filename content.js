@@ -156,11 +156,13 @@
       // Get vulnerability scan results
       const vulnResult = scanVulnerabilities();
 
+      const aiResult = window.aiPredictRisk(url);
       const payload = {
         type: 'PAGE_FINDINGS',
         findings: {
           url: url,
-          aiScore: score,
+          aiScore: aiResult.score,
+          reasons: aiResult.reasons || [],
           vulnerabilities: vulnResult.vulnerabilities || {},
           vulnerabilityScore: vulnResult.score || 0,
           phishing: { suspicious: false },
@@ -232,7 +234,7 @@
 // Message listener for background script operations (outside IIFE to ensure it runs)
 console.log('[Content] Setting up message listener for clipboard and alert operations');
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log('[Content] Received message:', request.action);
   
   if (request.action === 'copyToClipboard') {
@@ -250,8 +252,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   
   if (request.action === 'showAlert') {
     console.log('[Content] Showing alert:', request.title);
-    alert(request.message);
+    alert(`${request.title}\n\n${request.message}`);
     sendResponse({ success: true });
+  }
+
+  if (request.action === 'promptRotation') {
+    const shift = prompt('Enter rotation number (e.g., 13 for ROT13, 1 for Caesar):', '13');
+    sendResponse({ shift: shift });
   }
 });
 
