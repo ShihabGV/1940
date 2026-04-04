@@ -1,8 +1,17 @@
 {
   "manifest_version": 3,
+<<<<<<< HEAD
   "name": "AI Safe Guard Enhanced",
   "version": "2.5.1",
   "description": "Professional security extension: Real-time threat detection, phishing prevention, EXIF analysis, VirusTotal integration, and comprehensive security dashboard.",
+=======
+  "name": "AI Safe Guard",
+  "version": "2.2.1",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "description": "Professional security extension: Real-time threat detection, phishing prevention, keylogger detection, VirusTotal integration, and comprehensive security dashboard.",
+>>>>>>> e74b18a6c6e47e4346a033fa43a571441cc0185e
   "permissions": [
     "tabs",
     "notifications",

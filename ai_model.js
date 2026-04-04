@@ -100,6 +100,49 @@
     } catch (error) {
       return { prob: 0.5, score: 50, features: {} };
     }
+<<<<<<< HEAD
+=======
+
+    // Extract features from URL
+    const features = extractUrlFeatures(urlStr);
+
+    // Compute weighted sum (linear combination)
+    let z = AI_MODEL.bias;
+    for (const [key, weight] of Object.entries(AI_MODEL.weights)) {
+      z += weight * (features[key] || 0);
+    }
+
+    // Apply sigmoid activation: convert to probability [0, 1]
+    const probability = sigmoid(z);
+
+    // Scale to percentage [0, 100]
+    const score = Math.round(probability * 100);
+
+    // Generate human-readable reasons
+    const reasons = [];
+    if (features.has_ip) reasons.push('Direct IP address usage');
+    if (features.http_only) reasons.push('Non-HTTPS connection');
+    if (features.long_host) reasons.push('Unusually long hostname');
+    if (features.many_dashes) reasons.push('Typosquatting indicator (many dashes)');
+    if (features.many_digits) reasons.push('Suspicious domain (many digits)');
+    if (features.risky_tld) reasons.push('Known risky TLD');
+    if (features.phishing_words) reasons.push('Phishing-related keywords found');
+    if (features.risky_ext) reasons.push('Risky file extension in URL');
+    if (features.suspicious_path) reasons.push('Obfuscated URL path');
+    if (features.looks_like_subdomain) reasons.push('Subdomain spoofing attempt');
+
+    // Return predictions
+    return {
+      prob: Number(probability.toFixed(3)),
+      score: Math.max(0, Math.min(100, score)), // Clamp to [0, 100]
+      features: features,
+      reasons: reasons
+    };
+  } catch (error) {
+    // Fail-safe: return neutral risk
+    console.error('[AI Model] Prediction error:', error);
+    return { prob: 0.5, score: 50, features: {} };
+>>>>>>> e74b18a6c6e47e4346a033fa43a571441cc0185e
   }
 
   function classifyRisk(score) {
@@ -116,4 +159,38 @@
 
   console.log('[AI Model] Loaded and exposed functions');
 
+<<<<<<< HEAD
 })(typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : this));
+=======
+/**
+ * Classify risk into categories
+ */
+function classifyRisk(score) {
+  if (score >= 85) return { level: 'DANGEROUS', color: '#dc2626', emoji: '🟥' };
+  if (score >= 60) return { level: 'SUSPICIOUS', color: '#f97316', emoji: '🟧' };
+  if (score >= 35) return { level: 'MEDIUM', color: '#eab308', emoji: '🟨' };
+  return { level: 'SAFE', color: '#16a34a', emoji: '🟩' };
+}
+
+// ==================== EXPORT / LOGGING ====================
+
+// Expose to window/global for content script and background access
+if (typeof window !== 'undefined') {
+  window.aiPredictRisk = aiPredictRisk;
+  window.batchPredictRisk = batchPredictRisk;
+  window.classifyRisk = classifyRisk;
+  window.extractUrlFeatures = extractUrlFeatures;
+} else if (typeof self !== 'undefined') {
+  self.aiPredictRisk = aiPredictRisk;
+  self.batchPredictRisk = batchPredictRisk;
+  self.classifyRisk = classifyRisk;
+  self.extractUrlFeatures = extractUrlFeatures;
+}
+
+// Log model initialization
+console.log('[AI Safe Guard] Threat detection model loaded');
+console.log('[AI Safe Guard] Model version:', '2.2.0');
+console.log('[AI Safe Guard] Features:', Object.keys(AI_MODEL.weights).length);
+console.log('[AI Safe Guard] Thresholds: Safe<35, Medium<60, Suspicious<85, Dangerous>=85');
+console.log('[AI Safe Guard] AI functions exposed:', typeof window.aiPredictRisk);
+>>>>>>> e74b18a6c6e47e4346a033fa43a571441cc0185e
