@@ -5,6 +5,7 @@
 
 // ==================== IMPORT UTILS ====================
 importScripts('utils.js');
+importScripts('ai_model.js');
 
 // ==================== INITIALIZATION ====================
 console.log('[BG] Service Worker started');
@@ -28,9 +29,39 @@ function setupContextMenus() {
     chrome.contextMenus.create({
       id: 'security-tools-root',
       title: '🔍 Security Tools',
-      contexts: ['selection', 'link', 'page']
+      contexts: ['selection', 'link', 'page', 'image']
     });
-    console.log('[BG] Created parent menu: security-tools-root');
+
+    // Image EXIF
+    chrome.contextMenus.create({
+      id: 'view-exif',
+      parentId: 'security-tools-root',
+      title: '🖼️ View Image EXIF (Hidden)',
+      contexts: ['image']
+    });
+
+    // ROT13 / Caesar
+    chrome.contextMenus.create({
+      id: 'rot13-transform',
+      parentId: 'security-tools-root',
+      title: '🔄 ROT13 / Caesar Transform',
+      contexts: ['selection']
+    });
+
+    // CyberChef Magic
+    chrome.contextMenus.create({
+      id: 'cyberchef-magic',
+      parentId: 'security-tools-root',
+      title: '🪄 CyberChef Magic',
+      contexts: ['selection']
+    });
+
+    // Separator
+    chrome.contextMenus.create({
+      id: 'separator-enc',
+      parentId: 'security-tools-root',
+      type: 'separator'
+    });
 
     // Base64 Encode
     chrome.contextMenus.create({
@@ -45,22 +76,6 @@ function setupContextMenus() {
       id: 'decode-base64',
       parentId: 'security-tools-root',
       title: '📖 Decode Base64',
-      contexts: ['selection']
-    });
-
-    // URL Encode
-    chrome.contextMenus.create({
-      id: 'encode-url',
-      parentId: 'security-tools-root',
-      title: '🔗 Encode URL',
-      contexts: ['selection']
-    });
-
-    // URL Decode
-    chrome.contextMenus.create({
-      id: 'decode-url',
-      parentId: 'security-tools-root',
-      title: '🔓 Decode URL',
       contexts: ['selection']
     });
 
@@ -108,24 +123,22 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   console.log('='.repeat(50));
   
   switch(info.menuItemId) {
+    case 'view-exif':
+      handleViewExif(info.srcUrl);
+      break;
+    case 'rot13-transform':
+      handleRotTransform(text, tab.id);
+      break;
+    case 'cyberchef-magic':
+      handleMagic(text);
+      break;
     case 'encode-base64':
-      console.log('[HANDLER] Calling handleBase64Encode');
       handleBase64Encode(text);
       break;
     case 'decode-base64':
-      console.log('[HANDLER] Calling handleBase64Decode');
       handleBase64Decode(text);
       break;
-    case 'encode-url':
-      console.log('[HANDLER] Calling handleURLEncode');
-      handleURLEncode(text);
-      break;
-    case 'decode-url':
-      console.log('[HANDLER] Calling handleURLDecode');
-      handleURLDecode(text);
-      break;
     case 'virustotal-check':
-      console.log('[HANDLER] Calling checkUrlOnVirusTotal');
       checkUrlOnVirusTotal(info.linkUrl || tab.url);
       break;
     default:
@@ -383,6 +396,7 @@ async function handlePageFindings(msg, sender) {
     const logEntry = {
       url: findings.url,
       aiScore: findings.aiScore || 0,
+      reasons: findings.reasons || [],
       vulnerabilityScore: findings.vulnerabilityScore || 0,
       vulnerabilities: findings.vulnerabilities || {},
       phishing: findings.phishing || {},
@@ -806,3 +820,133 @@ async function cleanupLogs() {
 console.log('[BG] Background worker initialization complete');
 
 Logger.log('AI Safe Guard background worker initialized successfully');  
+/**
+ * View Image EXIF Data
+ */
+async function handleViewExif(imageUrl) {
+  try {
+    if (!imageUrl) {
+      showPopup('❌ Error', 'No image URL found');
+      return;
+    }
+
+    showPopup('🔍 Analyzing', 'Extracting EXIF data from image...');
+
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    
+    // Simple EXIF parser (checks for common tags)
+    const view = new DataView(arrayBuffer);
+    if (view.getUint16(0) !== 0xFFD8) {
+      showPopup('⚠️ Info', 'Not a JPEG image. EXIF data usually exists in JPEGs.');
+      return;
+    }
+
+    // In a real scenario, we'd use a library. Here we'll show a summary.
+    const size = (blob.size / 1024).toFixed(2) + ' KB';
+    const type = blob.type;
+    
+    // Heuristic: look for 'Photoshop', 'Canon', 'Nikon', 'iPhone', 'GPS'
+    const text = new TextDecoder().decode(arrayBuffer.slice(0, 5000));
+    const metadata = [];
+    if (text.includes('Adobe')) metadata.push('Software: Adobe Photoshop');
+    if (text.includes('Canon')) metadata.push('Camera: Canon');
+    if (text.includes('Nikon')) metadata.push('Camera: Nikon');
+    if (text.includes('iPhone')) metadata.push('Camera: iPhone');
+    if (text.includes('GPS')) metadata.push('📍 GPS Data: Present (Hidden)');
+    
+    const message = `File Info:\nSize: ${size}\nType: ${type}\n\nMetadata Found:\n${metadata.length > 0 ? metadata.join('\n') : 'No common EXIF tags found in the first 5KB.'}`;
+    
+    showPopup('🖼️ Image Analysis', message);
+  } catch (error) {
+    showPopup('❌ Error', 'Could not parse image: ' + error.message);
+  }
+}
+
+/**
+ * ROT13 / Caesar Transform with configurable rotation
+ */
+function handleRotTransform(text, tabId) {
+  chrome.tabs.sendMessage(tabId, { action: 'promptRotation' }, (response) => {
+    if (chrome.runtime.lastError) {
+      // Fallback to ROT13 if content script fails
+      const result = rot(text, 13);
+      copyToClipboardViaContentScript(result, '🔄 ROT13 Result', result);
+      return;
+    }
+    
+    if (response && response.shift !== undefined) {
+      const shift = parseInt(response.shift) || 13;
+      const result = rot(text, shift);
+      copyToClipboardViaContentScript(result, `🔄 ROT${shift} Result`, result);
+    }
+  });
+}
+
+function rot(str, shift) {
+  return str.replace(/[a-zA-Z]/g, (c) => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode(((c.charCodeAt(0) - base + shift) % 26 + 26) % 26 + base);
+  });
+}
+
+/**
+ * CyberChef Magic - Detect and Decode
+ */
+function handleMagic(text) {
+  const results = [];
+  
+  // Try Base64
+  try {
+    const decoded = atob(text);
+    if (/[a-zA-Z0-9\s]/.test(decoded)) results.push(`Base64: ${decoded}`);
+  } catch(e) {}
+  
+  // Try Hex
+  try {
+    if (/^[0-9a-fA-F\s]+$/.test(text)) {
+      const hex = text.replace(/\s/g, '');
+      let decoded = '';
+      for (let i = 0; i < hex.length; i += 2) {
+        decoded += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+      }
+      if (/[a-zA-Z0-9\s]/.test(decoded)) results.push(`Hex: ${decoded}`);
+    }
+  } catch(e) {}
+
+  // Try URL
+  try {
+    const decoded = decodeURIComponent(text);
+    if (decoded !== text) results.push(`URL: ${decoded}`);
+  } catch(e) {}
+
+  if (results.length > 0) {
+    showPopup('🪄 Magic Results', results.join('\n\n'));
+  } else {
+    showPopup('🪄 Magic Result', 'No common encodings detected. Try manual decode.');
+  }
+}
+
+/**
+ * Popup/Ad Site Blocker
+ */
+chrome.tabs.onCreated.addListener(async (tab) => {
+  try {
+    // If a new tab is created, check its URL
+    const url = tab.pendingUrl || tab.url;
+    if (url && (url.startsWith('http') || url.startsWith('https'))) {
+      // Use the global aiPredictRisk from ai_model.js (already imported via content scripts or we need to ensure it's available in BG)
+      if (typeof aiPredictRisk === 'function') {
+        const aiResult = aiPredictRisk(url);
+        if (aiResult.score >= 85) {
+          console.log('[BG] Closing suspicious popup:', url);
+          chrome.tabs.remove(tab.id);
+          sendNotification('🛡️ Ad/Popup Blocked', 'Closed a suspicious popup: ' + truncateUrl(url, 30));
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[BG] Error in onCreated listener:', error);
+  }
+});
