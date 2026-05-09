@@ -397,11 +397,7 @@ async function handlePageFindings(msg, sender) {
       url: findings.url,
       ts: Date.now(),
       aiScore: findings.aiScore || 0,
-<<<<<<< HEAD
       reasons: Array.isArray(findings.reasons) ? findings.reasons : [],
-=======
-      reasons: findings.reasons || [],
->>>>>>> e74b18a6c6e47e4346a033fa43a571441cc0185e
       vulnerabilityScore: findings.vulnerabilityScore || 0,
       vulnerabilities: findings.vulnerabilities || {},
       phishing: findings.phishing || {},
@@ -941,14 +937,8 @@ chrome.tabs.onCreated.addListener(async (tab) => {
     // If a new tab is created, check its URL
     const url = tab.pendingUrl || tab.url;
     if (url && (url.startsWith('http') || url.startsWith('https'))) {
-<<<<<<< HEAD
       if (typeof self.aiPredictRisk === 'function') {
         const aiResult = self.aiPredictRisk(url);
-=======
-      // Use the global aiPredictRisk from ai_model.js (already imported via content scripts or we need to ensure it's available in BG)
-      if (typeof aiPredictRisk === 'function') {
-        const aiResult = aiPredictRisk(url);
->>>>>>> e74b18a6c6e47e4346a033fa43a571441cc0185e
         if (aiResult.score >= 85) {
           console.log('[BG] Closing suspicious popup:', url);
           chrome.tabs.remove(tab.id);
